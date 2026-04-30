@@ -96,3 +96,32 @@ def filtro_mediana(img, tamanho_kernel=3):
             out[i, j] = mediana
 
     return np.clip(out, 0, 255, ).astype(np.uint8)
+
+#função de especificação de histograma
+def esp_hist(referencia, alvo):
+
+    referencia_lab = cv2.cvtColor(referencia, cv2.COLOR_BGR2LAB)
+    alvo_lab = cv2.cvtColor(alvo, cv2.COLOR_BGR2LAB)
+
+    l_ref, a_ref, b_ref = cv2.split(referencia_lab)
+    l_alvo, a_alvo, b_alvo = cv2.split(alvo_lab)
+
+    hist_ref = cv2.calcHist([l_ref], [0],None, [256], [0, 256])
+    hist_alvo = cv2.calcHist([l_alvo], [0],None, [256], [0, 256])
+
+    pdf_ref = hist_ref / hist_ref.sum()
+    pdf_alvo = hist_alvo / hist_alvo.sum()
+
+    cdf_ref = np.cumsum(pdf_ref)
+    cdf_alvo = np.cumsum(pdf_alvo)
+
+    mapeamento = np.interp(cdf_alvo, cdf_ref,range(256))
+
+    l_novo = cv2.LUT(l_alvo,mapeamento.astype(np.uint8))
+
+    alvo_novo_lab = cv2.merge([l_novo, a_alvo,b_alvo])
+
+    imagem_resultado = cv2.cvtColor(alvo_novo_lab, cv2.COLOR_LAB2BGR)
+
+    return imagem_resultado
+
