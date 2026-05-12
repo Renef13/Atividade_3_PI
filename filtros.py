@@ -35,3 +35,5 @@ def filtro_mediana(img, tamanho_kernel=3):
 
     out_lab = np.clip(out, 0, 255).astype(np.uint8)
     return cv2.cvtColor(out_lab, cv2.COLOR_LAB2RGB)
+
+def filtro_gaussiana(img_bgr, tamanho_kernel=3):
