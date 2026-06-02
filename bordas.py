@@ -35,3 +35,21 @@ def det_prewitt(img):
     magnitude = cv.normalize(magnitude, None, 0, 255, cv.NORM_MINMAX)
 
     return magnitude.astype(np.uint8)
+
+def det_sobel(img):
+    pass
+
+def det_scharr(img):
+    pass
+
+def det_laplaciano(img):
+    pass
+
+def det_LoG(img):
+    pass
+
+def det_DoG(img):
+    pass
+
+def det_canny(img):
+    pass
