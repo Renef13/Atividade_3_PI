@@ -36,20 +36,38 @@ def det_prewitt(img):
 
     return magnitude.astype(np.uint8)
 
+
 def det_sobel(img):
-    pass
+    img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY).astype(np.float32)
+
+    kernel_gx = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype=np.float32)
+    kernel_gy = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], dtype=np.float32)
+
+    gx = cv.filter2D(img_gray, cv.CV_32F, kernel_gx)
+    gy = cv.filter2D(img_gray, cv.CV_32F, kernel_gy)
+
+    magnitude = np.sqrt(gx ** 2 + gy ** 2)
+
+    magnitude = cv.normalize(magnitude, None, 0, 255, cv.NORM_MINMAX)
+
+    return magnitude.astype(np.uint8)
+
 
 def det_scharr(img):
     pass
 
+
 def det_laplaciano(img):
     pass
+
 
 def det_LoG(img):
     pass
 
+
 def det_DoG(img):
     pass
+
 
 def det_canny(img):
     pass
