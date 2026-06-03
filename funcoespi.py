@@ -125,3 +125,32 @@ def esp_hist(referencia, alvo):
 
     return imagem_resultado
 
+
+def exibir_resultados(img_biblioteca, img_original, img_manual):
+    import matplotlib.pyplot as plt
+
+    # Se a imagem original tiver 3 canais (BGR), converte para cinza para exibição
+    if len(img_original.shape) == 3:
+        img_original_gray = cv2.cvtColor(img_original, cv2.COLOR_BGR2GRAY)
+    else:
+        img_original_gray = img_original
+
+    plt.figure(figsize=(15, 5))
+
+    plt.subplot(1, 3, 1)
+    plt.title('Versão biblioteca')
+    plt.imshow(img_biblioteca, cmap='gray')
+    plt.axis('off')
+
+    plt.subplot(1, 3, 2)
+    plt.title('Original')
+    plt.imshow(img_original_gray, cmap='gray')
+    plt.axis('off')
+
+    plt.subplot(1, 3, 3)
+    plt.title('Implementação local')
+    plt.imshow(img_manual, cmap='gray')
+    plt.axis('off')
+
+    plt.show()
+
