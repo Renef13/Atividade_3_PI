@@ -71,8 +71,17 @@ def det_scharr(img):
 
 
 def det_laplaciano(img):
-    pass
+    img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY).astype(np.float64)
 
+    kernel = np.array([[0,1,0],[1,-4,1],[0,1,0]],dtype=np.float64)
+
+    lap = convolve(img_gray, kernel, mode='reflect')
+
+    lap = np.abs(lap)
+
+    lap = cv.normalize(lap, None, 0, 255, cv.NORM_MINMAX)
+
+    return lap.astype(np.uint8)
 
 def det_LoG(img):
     pass
