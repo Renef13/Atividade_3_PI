@@ -136,5 +136,72 @@ def det_DoG(img):
 
     return dog.astype(np.uint8)
 
-def det_canny(img):
-    pass
+def det_canny(img, low_threshold=50, high_threshold=150):
+    # 1 — Suavização gaussiana (reduz ruído antes de detectar bordas)
+    img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY).astype(np.float64)
+    kernel_gauss = gerar_kernel_gaussiano(5)
+    img_suave = convolve(img_gray, kernel_gauss, mode='reflect')
+
+    # 2 — Gradiente via Sobel: magnitude + ângulo de direção
+    kernel_gx = np.array([[-1, 0, 1],
+                           [-2, 0, 2],
+                           [-1, 0, 1]], dtype=np.float64)
+    kernel_gy = np.array([[-1, -2, -1],
+                           [ 0,  0,  0],
+                           [ 1,  2,  1]], dtype=np.float64)
+
+    gx = convolve(img_suave, kernel_gx, mode='reflect')
+    gy = convolve(img_suave, kernel_gy, mode='reflect')
+
+    magnitude = np.sqrt(gx**2 + gy**2)
+
+    angulo = np.arctan2(gy, gx) * 180.0 / np.pi
+    angulo[angulo < 0] += 180.0          # normaliza para [0°, 180°)
+
+    # 3 — Supressão de não-máximos (NMS): afina as bordas a 1 pixel
+    h, w = magnitude.shape
+    nms = np.zeros((h, w), dtype=np.float64)
+
+    for i in range(1, h - 1):
+        for j in range(1, w - 1):
+            theta = angulo[i, j]
+
+            # Seleciona os dois vizinhos na direção do gradiente
+            if (0 <= theta < 22.5) or (157.5 <= theta <= 180):
+                q, r = magnitude[i, j + 1], magnitude[i, j - 1]      # horizontal
+            elif 22.5 <= theta < 67.5:
+                q, r = magnitude[i + 1, j - 1], magnitude[i - 1, j + 1]  # diagonal /
+            elif 67.5 <= theta < 112.5:
+                q, r = magnitude[i + 1, j], magnitude[i - 1, j]      # vertical
+            else:                                                       # 112.5–157.5
+                q, r = magnitude[i - 1, j - 1], magnitude[i + 1, j + 1]  # diagonal \
+
+            # Mantém só o pixel máximo local
+            nms[i, j] = magnitude[i, j] if (magnitude[i, j] >= q and magnitude[i, j] >= r) else 0.0
+
+    # Normaliza para [0, 255] antes da limiarização
+    nms_norm = cv.normalize(nms, None, 0, 255, cv.NORM_MINMAX)
+
+    # 4 — Dupla limiarização: classifica bordas em fortes, fracas e não-bordas
+    FORTE = 255.0
+    FRACO = 75.0
+
+    resultado = np.zeros((h, w), dtype=np.float64)
+    resultado[nms_norm >= high_threshold] = FORTE
+    resultado[(nms_norm >= low_threshold) & (nms_norm < high_threshold)] = FRACO
+
+    # 5 — Histerese: promove bordas fracas conectadas a bordas fortes
+    #     Usa convolve para expandir a máscara de pixels fortes a cada iteração
+    kernel_viz = np.ones((3, 3), dtype=np.float64)
+
+    alterado = True
+    while alterado:
+        anterior  = resultado.copy()
+        mapa_forte = (resultado == FORTE).astype(np.float64)
+        expansao   = convolve(mapa_forte, kernel_viz, mode='constant', cval=0.0)
+        resultado[(resultado == FRACO) & (expansao > 0)] = FORTE
+        alterado = not np.array_equal(anterior, resultado)
+
+    resultado[resultado == FRACO] = 0.0   # descarta bordas fracas isoladas
+
+    return resultado.astype(np.uint8)
