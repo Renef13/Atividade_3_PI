@@ -2,9 +2,6 @@ import numpy as np
 import cv2 as cv
 from scipy.ndimage import convolve
 
-from det_bordas import kernel_gx
-
-
 def det_roberts(img):
     img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY).astype(np.float64)
 
