@@ -1,6 +1,8 @@
 import numpy as np
 import cv2 as cv
 from scipy.ndimage import convolve, correlate
+from filtros import filtro_gaussiana, gerar_kernel_gaussiano
+
 
 def det_roberts(img):
     img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY).astype(np.float64)
@@ -68,12 +70,10 @@ def det_scharr(img):
     return magnitude.astype(np.uint8)
 
 
-
-
 def det_laplaciano(img):
     img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY).astype(np.float64)
 
-    kernel = np.array([[0,1,0],[1,-4,1],[0,1,0]],dtype=np.float64)
+    kernel = np.array([[0, 1, 0], [1, -4, 1], [0, 1, 0]], dtype=np.float64)
 
     lap = convolve(img_gray, kernel, mode='reflect')
 
@@ -83,13 +83,58 @@ def det_laplaciano(img):
 
     return lap.astype(np.uint8)
 
-def det_LoG(img):
-    pass
 
+def det_LoG(img):
+    img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY).astype(np.float64)
+
+    img_blur = convolve(
+        img_gray,
+        gerar_kernel_gaussiano(5),
+        mode='reflect'
+    )
+
+    kernel_lap = np.array([
+        [0, 1, 0],
+        [1, -4, 1],
+        [0, 1, 0]
+    ], dtype=np.float64)
+
+    log = convolve(
+        img_blur,
+        kernel_lap,
+        mode='reflect'
+    )
+
+    log = np.abs(log)
+
+    log = cv.normalize(
+        log,
+        None,
+        0,
+        255,
+        cv.NORM_MINMAX
+    )
+
+    return log.astype(np.uint8)
 
 def det_DoG(img):
-    pass
+    g1 = filtro_gaussiana(img, 3)
+    g2 = filtro_gaussiana(img, 7)
 
+    dog = cv.cvtColor(g1, cv.COLOR_BGR2GRAY).astype(np.float64) - \
+          cv.cvtColor(g2, cv.COLOR_BGR2GRAY).astype(np.float64)
+
+    dog = np.abs(dog)
+
+    dog = cv.normalize(
+        dog,
+        None,
+        0,
+        255,
+        cv.NORM_MINMAX
+    )
+
+    return dog.astype(np.uint8)
 
 def det_canny(img):
     pass
