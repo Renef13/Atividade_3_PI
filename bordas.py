@@ -1,6 +1,6 @@
 import numpy as np
 import cv2 as cv
-from scipy.ndimage import convolve
+from scipy.ndimage import convolve, correlate
 
 def det_roberts(img):
     img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY).astype(np.float64)
@@ -58,8 +58,8 @@ def det_scharr(img):
     kernel_gx = np.array([[-3, 0, 3], [-10, 0, 10], [-3, 0, 3]], dtype=np.float64)
     kernel_gy = np.array([[-3, -10, -3], [0, 0, 0], [3, 10, 3]], dtype=np.float64)
 
-    gx = convolve(img_gray, kernel_gx, mode='reflect')
-    gy = convolve(img_gray, kernel_gy, mode='reflect')
+    gx = correlate(img_gray, kernel_gx, mode='reflect')
+    gy = correlate(img_gray, kernel_gy, mode='reflect')
 
     magnitude = np.sqrt(gx ** 2 + gy ** 2)
 
